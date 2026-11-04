@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101a36">
+<title>스타 아레나 - 3대3 에너지 배틀</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1228;--panel:#151f3d;--blue:#55c7ff;--pink:#ff668f;--mint:#8fffd0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1b2d59 0,#0b1228 65%);color:#f4f7ff;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(16px,5vw,64px);border-bottom:1px solid #ffffff18;background:#0b1228cc;position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}
+.logo{font-weight:900;letter-spacing:.5px;font-size:20px}.logo span{color:var(--blue)}
+nav{display:flex;gap:8px}nav button,.action{border:1px solid #ffffff24;background:#1b294c;color:#eaf2ff;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}nav button.active,.action.primary{background:linear-gradient(135deg,#2d9ce8,#6264ed);border-color:transparent}
+main{width:min(1100px,94vw);margin:36px auto 64px}.view{display:none}.view.active{display:block}
+.hero{padding:clamp(28px,6vw,64px);border:1px solid #ffffff20;border-radius:28px;background:linear-gradient(130deg,#1c3766,#1a2450 60%,#382354);box-shadow:0 24px 70px #0005}
+.eyebrow{color:var(--mint);font-weight:900;letter-spacing:2px;font-size:12px}.hero h1{font-size:clamp(34px,7vw,66px);line-height:1.08;margin:14px 0}.hero p{color:#d0dcf5;line-height:1.8;max-width:620px}.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.info{background:#151f3d;border:1px solid #ffffff16;border-radius:18px;padding:20px}.info b{display:block;margin-bottom:6px}.info p{margin:0;color:#aebbd8;font-size:14px;line-height:1.6}
+.game-head{display:flex;align-items:end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}.game-head h2{margin:0;font-size:28px}.muted{color:#aebbd8;font-size:14px}
+.game-shell{background:#111a34;border:1px solid #ffffff22;border-radius:22px;padding:12px;box-shadow:0 22px 65px #0006}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:6px 6px 12px}.team{font-weight:900}.team.blue{color:var(--blue)}.team.red{color:var(--pink)}.score{font-size:25px;font-weight:1000;letter-spacing:2px}.timer{font-variant-numeric:tabular-nums;background:#ffffff12;padding:7px 13px;border-radius:10px;font-weight:900}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#101b35;border-radius:14px;cursor:crosshair;touch-action:none}
+.game-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 6px 4px}.game-controls p{margin:0;color:#b6c4e2;font-size:13px;line-height:1.7}.game-actions{display:flex;gap:8px}.action{padding:9px 14px}.action:disabled{opacity:.5;cursor:not-allowed}
+.overlay{position:relative}.message{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none}.message-card{background:#0b1228eF;border:1px solid #ffffff30;border-radius:18px;padding:22px 28px;max-width:85%;box-shadow:0 15px 40px #0008}.message-card h3{font-size:25px;margin:0 0 8px}.message-card p{margin:0;color:#c3d1ed}
+.mobile-controls{display:none;justify-content:space-between;align-items:center;padding:12px 4px 2px;gap:16px}.pad{display:grid;grid-template-columns:repeat(3,42px);grid-template-rows:repeat(2,38px);gap:4px}.pad button,.fire{border:1px solid #ffffff30;background:#25365f;color:white;border-radius:10px;font-weight:900;touch-action:none}.pad button:nth-child(1){grid-column:2}.pad button:nth-child(2){grid-column:1;grid-row:2}.pad button:nth-child(3){grid-column:2;grid-row:2}.pad button:nth-child(4){grid-column:3;grid-row:2}.fire{width:82px;height:70px;background:#6941bb}
+footer{text-align:center;color:#7f90b5;padding:0 16px 28px;font-size:12px}
+@media(max-width:650px){header{padding:14px 4vw}.logo{font-size:16px}main{margin-top:22px}.info-grid{grid-template-columns:1fr}.game-shell{padding:7px}.mobile-controls{display:flex}.game-controls p{font-size:12px}.game-head h2{font-size:23px}}
+</style>
+</head>
+<body>
+<header><div class="logo">✦ STAR <span>ARENA</span></div><nav aria-label="주 메뉴"><button class="tab active" data-view="home">홈</button><button class="tab" data-view="game">게임</button></nav></header>
+<main>
+<section id="home" class="view active">
+<div class="hero"><div class="eyebrow">TEAM UP · POWER UP</div><h1>스타 아레나<br>3대3 에너지 배틀</h1><p>팀원들과 힘을 합쳐 아레나를 지켜 보세요! 알록달록한 에너지 볼로 상대 팀과 겨루는 캐주얼 아케이드 게임입니다. 먼저 10점을 얻는 팀이 승리해요.</p><div class="hero-actions"><button class="action primary" id="goGame">게임 시작하기 →</button><button class="action" id="howTo">조작 방법 보기</button></div></div>
+<div class="info-grid"><div class="info"><b>🔵 블루 팀</b><p>플레이어 1명과 AI 팀원 2명이 함께해요.</p></div><div class="info"><b>🔴 레드 팀</b><p>상대 팀 AI 3명과 아레나에서 대결해요.</p></div><div class="info"><b>⭐ 승리 조건</b><p>90초 안에 10점을 먼저 얻거나, 시간이 끝났을 때 점수가 더 높으면 승리!</p></div></div>
+</section>
+<section id="game" class="view">
+<div class="game-head"><div><div class="eyebrow">3 VS 3 · ARCADE MODE</div><h2>에너지 아레나</h2><div class="muted">팀워크를 발휘해 승리를 차지하세요.</div></div><button class="action primary" id="startTop">▶ 경기 시작</button></div>
+<div class="game-shell"><div class="hud"><div class="team blue">🔵 BLUE <span class="score" id="blueScore">0</span></div><div class="timer" id="timer">01:30</div><div class="team red"><span class="score" id="redScore">0</span> RED 🔴</div></div>
+<div class="overlay"><canvas id="arena" width="960" height="540" aria-label="3대3 에너지 볼 아레나 게임 화면"></canvas><div class="message" id="message"><div class="message-card"><h3>준비됐나요?</h3><p>경기 시작을 눌러 아레나에 입장하세요!</p></div></div></div>
+<div class="mobile-controls"><div class="pad"><button data-dir="up">▲</button><button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button></div><button class="fire" id="mobileFire">에너지<br>발사 ✦</button></div>
+<div class="game-controls"><p><b>PC 조작</b>　WASD 또는 방향키: 이동　·　마우스: 조준　·　클릭 또는 스페이스: 에너지 볼 발사<br><b>목표</b>　상대 팀에 에너지 볼을 맞혀 점수를 얻으세요. 내 캐릭터는 잠시 후 다시 등장해요.</p><div class="game-actions"><button class="action" id="pauseBtn">Ⅱ 일시정지</button><button class="action" id="restartBtn">↻ 다시하기</button></div></div></div>
+</section>
+</main><footer>STAR ARENA · 즐겁고 안전한 가상 아케이드 게임</footer>
+<script>
+(()=>{
+const $=s=>document.querySelector(s), tabs=[...document.querySelectorAll('.tab')];
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));tabs.forEach(t=>t.classList.toggle('active',t.dataset.view===id));}
+tabs.forEach(t=>t.addEventListener('click',()=>showView(t.dataset.view)));
+$('#goGame').onclick=()=>{showView('game');startGame()};$('#startTop').onclick=startGame;
+$('#howTo').onclick=()=>{showView('game');$('#message').style.display='flex';$('#message').innerHTML='<div class="message-card"><h3>조작 방법</h3><p>WASD / 방향키로 이동하고 마우스로 조준하세요.<br>클릭 또는 스페이스를 누르면 에너지 볼이 발사돼요!</p></div>'};
+const canvas=$('#arena'),ctx=canvas.getContext('2d'),W=960,H=540;
+let players=[],orbs=[],running=false,paused=false,ended=false,time=90,last=0,blue=0,red=0,keys={},aim={x:700,y:270},fireCooldown=0,raf=0;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function makePlayer(team,x,y,human=false){return{x,y,team,human,r:17,hp:100,alive:true,respawn:0,speed:human?225:135,cool:0,angle:team===0?0:Math.PI,color:team===0?'#55c7ff':'#ff668f',name:human?'YOU':team===0?'ALLY':'RIVAL'};}
+function reset(){players=[makePlayer(0,145,270,true),makePlayer(0,105,150),makePlayer(0,105,390),makePlayer(1,815,150),makePlayer(1,855,270),makePlayer(1,815,390)];orbs=[];blue=red=0;time=90;fireCooldown=0;ended=false;paused=false;updateHud();$('#pauseBtn').textContent='Ⅱ 일시정지';}
+function startGame(){cancelAnimationFrame(raf);reset();running=true;$('#message').style.display='none';last=performance.now();raf=requestAnimationFrame(loop);}
+function updateHud(){$('#blueScore').textContent=blue;$('#redScore').textContent=red;$('#timer').textContent=String(Math.ceil(time/60)).padStart(2,'0')+':'+String(Math.ceil(time%60)).padStart(2,'0');}
+function finish(){running=false;ended=true;const title=blue===red?'무승부!':blue>red?'블루 팀 승리!':'레드 팀 승리!';$('#message').innerHTML='<div class="message-card"><h3>'+title+'</h3><p>최종 점수　🔵 '+blue+' : '+red+' 🔴<br>다시하기를 눌러 한 판 더 도전하세요!</p></div>';$('#message').style.display='flex';}
+function fire(p,tx,ty){if(!p.alive||p.cool>0)return;let a=Math.atan2(ty-p.y,tx-p.x);p.angle=a;p.cool=p.human?.24:.85;orbs.push({x:p.x+Math.cos(a)*23,y:p.y+Math.sin(a)*23,vx:Math.cos(a)*430,vy:Math.sin(a)*430,team:p.team,life:1.8,r:7});}
+function nearestEnemy(p){let list=players.filter(q=>q.team!==p.team&&q.alive);list.sort((a,b)=>dist(p,a)-dist(p,b));return list[0];}
+function update(dt){time=Math.max(0,time-dt);fireCooldown=Math.max(0,fireCooldown-dt);
+players.forEach(p=>{if(!p.alive){p.respawn-=dt;if(p.respawn<=0){p.alive=true;p.hp=100;p.x=p.team===0?100:860;p.y=270+(Math.random()-.5)*150;}return;}p.cool=Math.max(0,p.cool-dt);
+if(p.human){let dx=(keys.d||keys.ArrowRight?1:0)-(keys.a||keys.ArrowLeft?1:0),dy=(keys.s||keys.ArrowDown?1:0)-(keys.w||keys.ArrowUp?1:0),len=Math.hypot(dx,dy)||1;p.x+=dx/len*p.speed*dt;p.y+=dy/len*p.speed*dt;p.angle=Math.atan2(aim.y-p.y,aim.x-p.x);if((keys[' ']||keys.fire)&&fireCooldown<=0){fire(p,aim.x,aim.y);fireCooldown=.2;}}
+else{let target=nearestEnemy(p);if(target){let d=dist(p,target),dx=(target.x-p.x)/(d||1),dy=(target.y-p.y)/(d||1);let str=d>265?1:d<165?-.55:.15;p.x+=dx*p.speed*str*dt+Math.sin(performance.now()/500+p.y)*22*dt;p.y+=dy*p.speed*str*dt+Math.cos(performance.now()/600+p.x)*22*dt;p.angle=Math.atan2(target.y-p.y,target.x-p.x);if(d<560&&p.cool<=0)fire(p,target.x+(Math.random()-.5)*45,target.y+(Math.random()-.5)*45);}}
+p.x=clamp(p.x,35,W-35);p.y=clamp(p.y,35,H-35);});
+orbs.forEach(o=>{o.x+=o.vx*dt;o.y+=o.vy*dt;o.life-=dt;let hit=players.find(p=>p.alive&&p.team!==o.team&&Math.hypot(p.x-o.x,p.y-o.y)<p.r+o.r);if(hit){hit.hp-=34;o.life=0;if(hit.hp<=0){hit.alive=false;hit.respawn=2.2;if(o.team===0)blue++;else red++;}}});
+orbs=orbs.filter(o=>o.life>0&&o.x>0&&o.x<W&&o.y>0&&o.y<H);
+updateHud();if(blue>=10||red>=10||time<=0)finish();}
+function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle='#142343';ctx.fillRect(0,0,W,H);
+ctx.strokeStyle='#ffffff0d';ctx.lineWidth=1;for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ctx.strokeStyle='#8da7d533';ctx.lineWidth=5;ctx.strokeRect(18,18,W-36,H-36);ctx.strokeStyle='#8da7d522';ctx.beginPath();ctx.moveTo(W/2,20);ctx.lineTo(W/2,H-20);ctx.stroke();ctx.beginPath();ctx.arc(W/2,H/2,78,0,Math.PI*2);ctx.stroke();
+[[270,145],[690,145],[270,395],[690,395]].forEach(([x,y])=>{ctx.fillStyle='#91a8d20d';ctx.beginPath();ctx.arc(x,y,48,0,Math.PI*2);ctx.fill();});
+players.forEach(p=>{if(!p.alive)return;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle);ctx.fillStyle=p.color;ctx.globalAlpha=.25;ctx.beginPath();ctx.arc(0,0,24,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle=p.color;ctx.fillRect(2,-6,25,12);ctx.fillStyle='#eaf5ff';ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.fill();ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();ctx.restore();ctx.fillStyle='#fff';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillText(p.name,p.x,p.y-27);ctx.fillStyle='#263653';ctx.fillRect(p.x-19,p.y+24,38,5);ctx.fillStyle=p.hp>50?'#8fffd0':'#ffcf70';ctx.fillRect(p.x-19,p.y+24,38*p.hp/100,5);});
+orbs.forEach(o=>{ctx.save();ctx.shadowBlur=18;ctx.shadowColor=o.team===0?'#55c7ff':'#ff668f';ctx.fillStyle=o.team===0?'#a7eaff':'#ffb2c5';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();ctx.restore();});
+if(running&&!paused){let me=players[0];if(me&&me.alive){ctx.strokeStyle='#ffffff55';ctx.setLineDash([5,7]);ctx.beginPath();ctx.moveTo(me.x,me.y);ctx.lineTo(aim.x,aim.y);ctx.stroke();ctx.setLineDash([]);}}
+}
+function loop(now){if(!running)return;let dt=Math.min((now-last)/1000,.035);last=now;if(!paused)update(dt);draw();raf=requestAnimationFrame(loop);}
+function togglePause(){if(!running||ended)return;paused=!paused;$('#pauseBtn').textContent=paused?'▶ 계속하기':'Ⅱ 일시정지';if(paused){$('#message').innerHTML='<div class="message-card"><h3>일시정지</h3><p>계속하기를 누르면 경기가 이어져요.</p></div>';$('#message').style.display='flex';}else{$('#message').style.display='none';last=performance.now();}}
+$('#pauseBtn').onclick=togglePause;$('#restartBtn').onclick=startGame;
+window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();keys[e.key.length===1?e.key.toLowerCase():e.key]=true;if(e.key===' '&&running&&!paused){keys.fire=true;}});
+window.addEventListener('keyup',e=>{keys[e.key.length===1?e.key.toLowerCase():e.key]=false;if(e.key===' ')keys.fire=false;});
+function pointer(e){const r=canvas.getBoundingClientRect();aim.x=(e.clientX-r.left)/r.width*W;aim.y=(e.clientY-r.top)/r.height*H;}
+canvas.addEventListener('pointermove',pointer);canvas.addEventListener('pointerdown',e=>{pointer(e);if(running&&!paused){fire(players[0],aim.x,aim.y);}});
+document.querySelectorAll('[data-dir]').forEach(b=>{const k={up:'w',down:'s',left:'a',right:'d'}[b.dataset.dir];b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=false));});
+$('#mobileFire').addEventListener('pointerdown',e=>{e.preventDefault();keys.fire=true});['pointerup','pointerleave','pointercancel'].forEach(ev=>$('#mobileFire').addEventListener(ev,()=>keys.fire=false));
+draw();
+})();
+</script>
+</body></html>
